@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { ToastContainer, toast } from "react-toastify";
+import Cookies from "js-cookie";
 
 const FileUpload = () => {
   const [title, setTitle] = useState<string>("");
@@ -30,24 +31,24 @@ const FileUpload = () => {
       return;
     }
 
+    const token = Cookies.get("access_token");
+
+    if (!token) {
+      toast.error("No estás autenticado. Por favor inicia sesión.");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("title", title);
-    files.forEach((file) => formData.append("files", file)); // Asegúrate de que el backend use "files"
+    files.forEach((file) => formData.append("files", file));
 
     try {
-      const token = localStorage.getItem("accessToken");  // O de donde almacenes el token
-
-      if (!token) {
-        toast.error("No estás autenticado. Por favor inicia sesión.");
-        return;
-      }
-
-      const url = 'http://127.0.0.1:8000/api/subir-archivo/';
+      const url = import.meta.env.VITE_API_URL + "/subir-archivo/";
 
       const response = await axios.post(url, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
-          "Authorization": `Bearer ${token}`, // Aquí añades el token en los encabezados
+          "Authorization": `Bearer ${token}`,
         },
         timeout: 10000,
       });
@@ -69,11 +70,14 @@ const FileUpload = () => {
             case 400:
               errorMessage = "Solicitud inválida";
               break;
+            case 401:
+              errorMessage = "Token inválido o expirado";
+              break;
             case 500:
               errorMessage = "Error del servidor";
               break;
             default:
-              errorMessage = "Error desconocido";
+              errorMessage = error.response.data?.message || "Error desconocido";
           }
         }
       }
@@ -94,7 +98,6 @@ const FileUpload = () => {
         </h1>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-y-5">
-          {/* Input de título */}
           <div>
             <label htmlFor="title" className="block text-gray-700 font-medium mb-1">
               Título
@@ -109,7 +112,6 @@ const FileUpload = () => {
             />
           </div>
 
-          {/* Zona de subida */}
           <label
             htmlFor="fileUpload"
             className="group flex flex-col items-center justify-center border-2 border-dashed border-gray-300 hover:border-blue-500 transition-colors cursor-pointer p-6 rounded-lg"
@@ -127,7 +129,6 @@ const FileUpload = () => {
             />
           </label>
 
-          {/* Lista de archivos */}
           {files.length > 0 && (
             <div>
               <h2 className="text-gray-700 font-semibold mb-2">
@@ -146,14 +147,13 @@ const FileUpload = () => {
             </div>
           )}
 
-          {/* Botón de envío */}
           <button
             type="submit"
             className="mt-6 w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold py-3 px-6 rounded-full shadow-lg hover:from-blue-600 hover:to-purple-600 hover:shadow-xl transform hover:scale-105 transition-all duration-300"
           >
             Enviar
           </button>
-        </form> {/* Aquí cerramos correctamente la etiqueta </form> */}
+        </form>
       </div>
     </>
   );

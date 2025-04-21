@@ -8,18 +8,21 @@ import FileList from './components/FileList';
 import StatsDashboard from './components/StatsDashboard';
 import FilePreview from './components/FilePreview';
 import './index.css';
+import Register from './auth/register';
+import Login from './auth/login';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<App />}>
-          <Route element={<Layout />}>
+            <Route index element ={<Login/>}></Route>
             <Route path="subir" element={<FileUpload />} />
             <Route path="archivos" element={<FileList />} />
             <Route path="estadisticas" element={<StatsDashboard />} />
             <Route path="vista-previa/:fileName" element={<FilePreview />} />
-          </Route>
+            <Route path="/login" element={<Login />}></Route>
+            <Route path="/register" element={<Register />}></Route>          
         </Route>
       </Routes>
     </BrowserRouter>
